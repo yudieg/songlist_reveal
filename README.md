@@ -2,7 +2,7 @@
 
 Songlist is simple slideshow controller designed to display song lyrics at projector or multple display. It reads and parse songlist.txt which contains slideshow data with songlist syntax then translate it into compatible reveal.js HTML elements. 
 
-This controller can launch another instance of Songlist Reveal window to act as presentation view that follow the slide changes of it's controller.
+This controller can launch another instance of songlist window that act as presentation view that follow slide changes of controller.
 
 
 ## Installation
