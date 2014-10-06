@@ -1,0 +1,8 @@
+{
+    "name": "songlist-reveal",
+    "dependencies": {
+        "jquery":"1.11.0",
+        "reveal.js": "*",
+        "jquery-tubular":"*"
+    }
+}

@@ -1,0 +1,399 @@
+<html>
+  <head>
+  </head>
+<body>
+
+<div id="editor" style="display:none">
+  <textarea id="strdata"></textarea>
+  <button id="bt_convert">Convert</button>
+</div>
+
+<link rel="stylesheet" href="reveal.js/css/reveal.min.css" />
+<link rel="stylesheet" href="reveal.js/css/theme/moon.css" />
+<style>
+
+@import url(http://fonts.googleapis.com/css?family=Allura);
+@import url(http://fonts.googleapis.com/css?family=Germania+One);
+@import url(http://fonts.googleapis.com/css?family=Fjalla+One);
+@import url(http://fonts.googleapis.com/css?family=Alike);
+
+  #strdata{
+    width:100%;
+    height:300px;
+  }
+
+   .reveal h2, .reveal h3, .reveal h4, .reveal h5, .reveal h6 {
+    font-family:"Alike";
+    text-transform:none;
+    line-height:1.2em;
+    color:#fff;
+    
+  }
+
+  .reveal h1{
+    text-shadow:0 0 20px rgba(255,255,255,0.4);
+
+  }
+  .reveal h2{
+    letter-spacing:-0.02em;
+  }
+
+  .reveal section.present{
+    text-shadow:0 0 10px rgba(0,0,0,0.7);
+  }
+
+  body{
+    font-family:Arial;
+    color:#fff;
+    font-size:3em;
+    background:#222;
+  }
+
+  .reveal section {
+    font-size:0.9em;
+  }
+  .reveal .script{
+    font-family:Allura;
+    text-transform:none;
+  }
+  
+  #controls{
+    position:absolute;
+    bottom:0;
+    right:0;
+    z-index:1000;
+  }
+  .reveal .backgrounds{
+    opacity:0.5;
+  }
+  .slides .header{
+    font-family:"League Gothic",Impact,sans-serif;
+    color:#fff;
+    opacity:0.5;
+  }
+  .reveal .slides section .fragment{
+    transition:all 30s ease 0s;
+  }
+  .reveal .slides section .fragment.grow.visible{
+    transform:scale(1.5);
+  }
+
+  .reveal note{
+    display:none;
+  }
+  .reveal note + br{
+    display:none;
+  }
+  .reveal.overview note{
+    display:inherit;
+    color:#ff0;
+  }
+
+ </style>
+
+<div id="container">
+  <div id="result" class="reveal">
+    <div class="slides">
+      <div class="header" style="position:absolute;top:-50%;padding:10px;left:-50%;text-transform:uppercase; font-size:0.7em;"></div>
+    </div>
+  </div>
+  <div id="controls">
+    <button id="bt_new_display">New Display</button>
+    <select  id="input_bg">
+      <option value="">None</option>
+      <option value="images/black.gif">Black</option>
+      <option value="images/bible.jpg">Bible</option>
+      <option value="images/candle.jpg">Candle</option>
+      <option value="images/worship.jpg">Worship</option>
+      <option value="images/he_is_risen.jpg">He is Risen</option>
+      <option value="images/pink-blur.jpg">Pink Blur</option>
+      <option value="other">Other</option>
+    </select>
+    <input type="text" id="bg_other">
+    <button id="bt_change_background">Set Background</button>
+
+  </div>
+</div>
+
+
+<script src="reveal.js/lib/js/head.min.js"></script> 
+<script src="jquery/dist/jquery.min.js"></script> 
+<script src="reveal.js/js/reveal.js"></script>
+<script src="jquery.tubular.1.0.1/js/jquery.tubular.1.0.js"></script>
+
+<script>
+
+var displays =[];
+var next = 0;
+$(function(){
+  var hash = get_url_vars()['data'];
+  var current_slide ;
+
+  if(hash=='' || hash==undefined) hash = 'songlist.txt';
+
+  $.get(hash).done(function(r){
+
+  }).fail(function(e){
+    $('#strdata').val(e.responseText);
+    start();
+  });
+
+  $('#bt_new_display').click(function(){open_window();});
+
+  $('#input_bg').change(function(){
+    if($(this).val() =='other'){
+      $('#bg_other').show();
+    }else{
+      $('#bg_other').hide();
+    }
+  });
+  $('#input_bg').trigger('change');
+  $('#bt_change_background').click(function(){
+
+    var bg_filename  = $('#input_bg').val();
+    if(bg_filename=='other'){
+      bg_filename = $('#bg_other').val();
+    }
+    change_background(bg_filename);
+    console.log(displays);
+    displays.forEach(function(i){
+      console.log(i);
+      try{
+        if(!$('#result').hasClass('overview'))
+          i.change_background(bg_filename);
+      }catch(e){
+        alert(e);
+      }
+    });
+
+  });
+
+  $('#bt_convert').click(start);
+
+  function start(){
+    convert($('#strdata').val());
+    Reveal.initialize({
+      controls:false,
+      progress:false,
+      history:true,
+      transition:'zoom',
+      margin:0.0,
+
+      parallaxBackgroundImage: 'images/blue_flowery.jpg',
+      //parallaxBackgroundSize:'1000px 800px'
+      dependencies:[
+       // {src:'reveal.js/plugin/search/search.js', async:true  }
+      ]
+    });
+    Reveal.configure({
+      keyboard:{
+        38:'prev',
+        40:'next'
+      }
+
+    });
+    $('#editor').hide();
+
+      
+    Reveal.addEventListener('slidechanged', function(e){
+      //console.log(Reveal.getCurrentSlide());
+      
+      current_slide = Reveal.getCurrentSlide();
+      if($(current_slide).index() >0){
+        $('.slides .header').html(  $(current_slide).siblings().first().text()  ) ;
+      }else{
+        $('.slides .header').html("");
+      }
+      //$('section').removeClass('zoom-ing');
+      //setTimeout(function(){  $(Reveal.getCurrentSlide()).addClass('zoom-ing');},1500);
+
+      // Display window(s)
+      displays.forEach(function(i){
+        try{
+          if(!$('#result').hasClass('overview'))
+            i.show_slide(e.indexh, e.indexv);
+        }catch(e){
+          alert(e);
+        }
+      });
+
+    })
+    
+    $(document).on('keyup', function(e){
+ 
+      if(e.keyCode==13){
+        displays.forEach(function(i){
+          var curslide = Reveal.getCurrentSlide();
+          i.show_slide( $(curslide).data('indexH'), $(curslide).data('indexV'));
+        });
+      }
+    })
+
+
+    //$('#result .backgrounds').hide();
+    // Background video
+    //var tubu_options = { videoId: 'MQwSGfuaacc', start: 3 };
+    //$('.state-background').tubular({ videoId: 'MQwSGfuaacc', start: 3 });
+
+  }
+
+  function get_url_vars(){
+      var vars = [], hash;
+      var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+      for(var i = 0; i < hashes.length; i++)
+      {
+          hash = hashes[i].split('=');
+          vars.push(hash[0]);
+          vars[hash[0]] = hash[1];
+      }
+      return vars;
+  }
+
+  function convert(str){
+    $result = $('#result .slides');
+    str = str.substr(10);
+    var slides = str.split("\n>");
+    //console.log(slides);
+    
+    $section = $('<section></section>');
+    
+    slides.forEach(function(i){
+      
+      i = i.replace(/\r/,'');
+      i = i.replace(/\n/g,'<br/>');
+      //console.log(i);
+      style = parse_style(i);
+      i = i.replace(/\[.+\]/i,'');
+
+      if(i.substr(0,1)=='-'){
+        // create new section
+       // alert("ERE");
+        $section = $('<section '+ style +'></section>');
+        $result.append($section);
+        $section.append('<section><h1>'+ i.replace(/^\-/,'') +'</h1></section>')
+      }else{
+        $section.append('<section '+ style +'><h2>'+ i +'</h2></section>')
+
+        //$section.append('<section ><h2>'+ i +'</h2></section>')
+      }
+
+    })
+  }
+
+  function parse_style(str){
+    str = str.replace(/^\-/,'');
+    var match = str.match(/^\[(.+)\]/i);
+    //console.log(match);
+    if(match!=null){
+      return match[1];
+    }
+  }
+
+  window.show_slide = function(section, slide){
+    Reveal.navigateTo(section,slide);
+  }
+
+
+});
+
+function open_window(){
+  var display = window.open(document.location,'songlist_display','top=0,left=0');
+  setTimeout(function(){
+    display.jQuery('#controls').hide();
+  },2000);
+  displays.push(display);
+}
+
+function change_background(filename ){
+  var $cur_bg = get_current_parent_background();
+  $cur_bg.removeClass('present').addClass('past');;
+  var $new_bg = $cur_bg.clone();
+  if(filename.substr(0,1)=='#'){
+    $new_bg.css('background',filename );
+  }else{
+    $new_bg.css('background-image',"url("+ filename +")");
+  }
+
+  $new_bg.insertAfter($cur_bg);
+  setTimeout(function(){
+    $new_bg.removeClass('past').addClass('present');  
+    $cur_bg.remove();
+  }, 100);
+
+}
+
+function get_current_background(){
+  var slide = Reveal.getCurrentSlide();
+  var v = ($(slide).index());
+//  var h = ($(slide).parent().index() );
+  var h = $(slide).parent().parent().find('>section').index(  $(slide).parent()); 
+
+  // console.log(h  + ' , ' + v);
+  var $backgrounds = $('.reveal .backgrounds').first();
+  console.log(h + ' ' + v);
+  var $bh = $backgrounds.find('>div:nth-child(' + (h + 1 )  + ')');
+  return $bh.find('>div:nth-child(' + (v + 1) + ')');
+
+}
+
+function get_current_parent_background(){
+  var slide = Reveal.getCurrentSlide();
+  var v = ($(slide).index());
+//  var h = ($(slide).parent().index() );
+  var h = $(slide).parent().parent().find('>section').index(  $(slide).parent()); 
+
+  // console.log(h  + ' , ' + v);
+  var $backgrounds = $('.reveal .backgrounds').first();
+  console.log(h + ' ' + v);
+  var $bh = $backgrounds.find('>div:nth-child(' + (h + 1 )  + ')');
+  return $bh;
+
+
+}
+
+</script>
+
+<div id="drop_zone">Drop files here</div>
+<output id="list"></output>
+
+<script>
+  function handleFileSelect(evt) {
+    evt.stopPropagation();
+    evt.preventDefault();
+
+    var files = evt.dataTransfer.files; // FileList object.
+    
+    // files is a FileList of File objects. List some properties.
+    var output = [];
+    var option;
+    for (var i = 0, f; f = files[i]; i++) {
+      console.log(files[i].mozFullPath);
+      option = $('<option value="images/' + files[i].name  + '">' + files[i].name + '</option>');
+      $('#input_bg').append(option);
+      $('#input_bg').val('images/' + files[i].name);// select it
+      $('#bt_change_background').click();
+      /*
+      output.push('<li><strong>', escape(f.name), '</strong> (', f.type || 'n/a', ') - ',
+                  f.size, ' bytes, last modified: ',
+                  f.lastModifiedDate ? f.lastModifiedDate.toLocaleDateString() : 'n/a',
+                  '</li>');
+        */
+    }
+  }
+
+  function handleDragOver(evt) {
+    evt.stopPropagation();
+    evt.preventDefault();
+    evt.dataTransfer.dropEffect = 'copy'; // Explicitly show this is a copy.
+  }
+
+  // Setup the dnd listeners.
+  //var dropZone = document.getElementById('drop_zone');
+  var dropZone = document.body;
+  dropZone.addEventListener('dragover', handleDragOver, false);
+  dropZone.addEventListener('drop', handleFileSelect, false);
+</script>
+
+
+</body>
+</html>
