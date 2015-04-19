@@ -30,6 +30,10 @@
     
   }
 
+  section.edit-mode{
+    border:3px solid #f60;
+  }
+
   .reveal h1{
     text-shadow:0 0 20px rgba(255,255,255,0.4);
 
@@ -62,7 +66,19 @@
     bottom:0;
     right:0;
     z-index:1000;
+    background: rgba(0,0,0,0.4);
+    width:100%;
+    line-height:30px !important;
+    height:30px;
+    font-size:1em;
   }
+  #controls .pad{
+    position:absolute;
+    top:-10px;
+    right:20px;
+    height:20px;
+  }
+
   .reveal .backgrounds{
     opacity:0.5;
   }
@@ -98,7 +114,9 @@
     </div>
   </div>
   <div id="controls">
+    <div class="pad">
     <button id="bt_new_display">New Display</button>
+    <button id="bt_edit">Edit</button>
     <select  id="input_bg">
       <option value="">None</option>
       <option value="images/black.gif">Black</option>
@@ -111,13 +129,14 @@
     </select>
     <input type="text" id="bg_other">
     <button id="bt_change_background">Set Background</button>
-
+    <input type="text" id="txt_bible_search" placeholder="search bible">
+    </div>
   </div>
 </div>
 
 
 <script src="reveal.js/lib/js/head.min.js"></script> 
-<script src="jquery/dist/jquery.min.js"></script> 
+<script src="reveal.js/lib/js/jquery-1.11.0.min.js"></script> 
 <script src="reveal.js/js/reveal.js"></script>
 <script src="jquery.tubular.1.0.1/js/jquery.tubular.1.0.js"></script>
 
@@ -138,6 +157,8 @@ $(function(){
     start();
   });
 
+  // Assign events
+  // - Button new display
   $('#bt_new_display').click(function(){open_window();});
 
   $('#input_bg').change(function(){
@@ -148,6 +169,9 @@ $(function(){
     }
   });
   $('#input_bg').trigger('change');
+
+
+  // - Button change background
   $('#bt_change_background').click(function(){
 
     var bg_filename  = $('#input_bg').val();
@@ -168,6 +192,72 @@ $(function(){
 
   });
 
+
+
+  // - Button edit
+  $('#bt_edit').click(edit_current_slide);
+
+  // - Search Bible
+  $('#txt_bible_search').keyup(function(e){
+    if(e.keyCode==13){
+      // enter.
+      var title = $(this).val();
+      get_verse(title, function(r){
+        console.log(r);
+        var html = [title];
+        for(var i in r){
+          html.push(r[i].verse   + '. ' + r[i].text.replace(/<a(.+)$/,''));
+        }
+
+        if(confirm("Add this to your display?\n\n" + html.join("\n") )){
+          var slide = Reveal.getCurrentSlide();
+          var new_i = -1;
+
+          for(var i in r){
+
+            var o = r[i];
+            var verse = '<h2><small>' + o.verse + '</small>'  + ' ' + o.text.replace(/<a(.+)$/,'') + '</h2>';
+            
+            var newSlide;
+            if(i == 0){
+              newSlide = Reveal.add('', -1); // empty section
+              new_i = Reveal.getIndices(newSlide).h + 1;
+              Reveal.add('<h1>' + title + '</h1>', new_i);
+            }
+            Reveal.add(verse, new_i);
+
+            var display_i = 0;
+            displays.forEach(function(display){
+              try{
+                if(i == 0){
+                  newSlide = display.Reveal.add('', -1); // empty section
+                  new_j = display.Reveal.getIndices(newSlide).h + 1;
+                  display.Reveal.add('<h1>' + title + '</h1>', new_j);
+                }
+                display.Reveal.add(verse, new_j);
+
+              }catch(e){
+                alert(e);
+              }
+              display_i++;
+            });
+          }
+          
+          //$(slide).html(txt);
+
+          // Show on the other displays;
+          var id = Reveal.getIndices();
+          var content = $(slide).html();
+
+
+
+        }
+
+      });
+        return false;
+    }
+  });
+
   $('#bt_convert').click(start);
 
   function start(){
@@ -179,8 +269,8 @@ $(function(){
       transition:'zoom',
       margin:0.0,
 
-      parallaxBackgroundImage: 'images/blue_flowery.jpg',
-      //parallaxBackgroundSize:'1000px 800px'
+      parallaxBackgroundImage: 'images/cyan-blur.jpg',
+      parallaxBackgroundSize:'4800px 3600px',
       dependencies:[
        // {src:'reveal.js/plugin/search/search.js', async:true  }
       ]
@@ -200,7 +290,7 @@ $(function(){
       
       current_slide = Reveal.getCurrentSlide();
       if($(current_slide).index() >0){
-        $('.slides .header').html(  $(current_slide).siblings().first().text()  ) ;
+        $('.slides .header').html(  $(current_slide).siblings().first().not('.note').text()  ) ;
       }else{
         $('.slides .header').html("");
       }
@@ -217,7 +307,62 @@ $(function(){
         }
       });
 
-    })
+    });
+
+
+    Reveal.addEventListener( 'ready', function( event ) {
+        Reveal.add = function( content = '',index = -1 ){ 
+            dom = {},
+
+            dom.slides = document.querySelector( '.reveal .slides' );
+            var newSlide = document.createElement( 'section' );
+            if( index === -1 ) { //adding slide to end
+                newSlide.classList.add( 'future' );
+                dom.slides.appendChild(newSlide);
+                document.querySelector( '.navigate-right' ).classList.add( 'enabled' ); //just enable it, even if it is
+            } else if( index > Reveal.getIndices().h ) {
+                newSlide.classList.add( 'future' );
+                //dom.slides.insertBefore(newSlide,dom.slides.querySelectorAll('section:nth-child('+(index+1)+')')[0]);
+                $(dom.slides.querySelectorAll('section:nth-child('+(index + 1)+')')[0]).append(newSlide);
+
+            } else if( index <= Reveal.getIndices().h ) {
+                newSlide.classList.add( 'past' );
+                dom.slides.insertBefore(newSlide,dom.slides.querySelectorAll('section:nth-child('+(index+1)+')')[0]);
+                Reveal.next();
+            }
+            newSlide.innerHTML = content;
+            return newSlide;
+        };
+
+        Reveal.remove = function( index = -1 ){ 
+            dom = {},
+
+            dom.wrapper = document.querySelector( '.reveal' );
+            dom.slides = document.querySelector( '.reveal .slides' );
+            var target = (dom.wrapper.querySelectorAll('.slides > section:nth-child('+(index+1)+')')[0]) ? dom.wrapper.querySelectorAll('.slides > section:nth-child('+(index+1)+')')[0] : false;
+
+            if( index === -1 ) {
+                if (Reveal.isLastSlide()) Reveal.prev();
+                dom.slides.removeChild(dom.wrapper.querySelectorAll('.slides > section')[dom.wrapper.querySelectorAll('.slides > section').length-1]);
+                if (Reveal.isLastSlide()) document.querySelector( '.navigate-right' ).classList.remove( 'enabled' );
+            } else if( index > Reveal.getIndices().h && target ) {
+                dom.slides.removeChild(target);
+                if (Reveal.getIndices().h == dom.wrapper.querySelectorAll('.slides > section').length-1) document.querySelector( '.navigate-right' ).classList.remove( 'enabled' );
+            } else if( index < Reveal.getIndices().h && target ) {
+                dom.slides.removeChild(target);
+                location.hash = '/'+parseInt(Reveal.getIndices().h-1);
+            } else if( index == Reveal.getIndices().h && target ) {
+                if (index == 0) {
+                    Reveal.next();
+                    document.querySelector( '.navigate-left' ).classList.remove( 'enabled' );
+                } else Reveal.prev();
+                dom.slides.removeChild(target);
+                if( dom.wrapper.querySelectorAll('.slides > section').length == index) document.querySelector( '.navigate-right' ).classList.remove( 'enabled' );
+            }
+        };
+    } );
+
+
     
     $(document).on('keyup', function(e){
  
@@ -297,7 +442,7 @@ $(function(){
 });
 
 function open_window(){
-  var display = window.open(document.location,'songlist_display','top=0,left=0');
+  var display = window.open(document.location,'songlist_display','top=0,left=0,location=no,titlebar=no,toolbar=no,location=no,status=no,menubar=no,scrollbars=no');
   setTimeout(function(){
     display.jQuery('#controls').hide();
   },2000);
@@ -336,6 +481,39 @@ function get_current_background(){
 
 }
 
+function edit_current_slide(){
+  var slide = Reveal.getCurrentSlide();
+
+  if($(this).html() =='Edit'){
+    console.log(slide);
+    $(this).html("Done");
+    this.edit_slide = slide;
+    $(slide).addClass("edit-mode");
+    $(slide).prop('contenteditable','true');  
+  }else{
+    $(slide).prop('contenteditable','false');  
+    $(this.edit_slide).removeProp('contenteditable').removeClass('edit-mode');
+    var id = Reveal.getIndices(this.edit_slide);
+    var content = $(slide).html();
+    displays.forEach(function(i){
+      try{
+        i.set_slide(id.h, id.v, content);
+      }catch(e){
+        alert(e);
+      }
+    });
+
+
+    delete this.edit_slide;
+    $(this).html("Edit");
+  }
+}
+
+function set_slide(h,v,content){
+  var slide = Reveal.getSlide(h,v);
+  $(slide).html(content);
+}
+
 function get_current_parent_background(){
   var slide = Reveal.getCurrentSlide();
   var v = ($(slide).index());
@@ -350,6 +528,21 @@ function get_current_parent_background(){
 
 
 }
+
+function get_verse(passage, callback ){
+  $.ajax({
+    "url" :'http://labs.bible.org/api/',
+    "dataType":"jsonp",
+    "data" :{
+      "passage": passage,
+      "type": "json"
+    }
+  }).done(function(r){
+    callback(r);
+
+  })
+}
+
 
 </script>
 
