@@ -39,4 +39,6 @@ Put `>-` To start new section or new song title.
 
 You can add HTML on each page by simply put the html tags after the page break delimiter
 
+### Background Video
 
+To put background video you need to put the mp4 video inside `videos` folder. Open videos folder with windows explorer or finder and then drag and drop the video file to the main presentation control window. 
