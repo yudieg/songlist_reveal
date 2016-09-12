@@ -194,6 +194,21 @@
       color:#260600;
       text-shadow: 0 0 10px rgba(255,255,255,0.5);
     }
+
+  .reveal .slides>section[data-transition=zoom],
+  .reveal.zoom .slides>section {
+    -webkit-transition-timing-function: ease;
+       -moz-transition-timing-function: ease;
+        -ms-transition-timing-function: ease;
+         -o-transition-timing-function: ease;
+            transition-timing-function: ease;
+
+    -webkit-transform-style: flat;
+       -moz-transform-style: flat;
+        -ms-transform-style: flat;
+            transform-style: flat;
+  }
+    
  </style>
 
 <div id="container">
@@ -248,7 +263,7 @@
 
 
 <script src="reveal.js/lib/js/head.min.js"></script> 
-<script src="reveal.js/lib/js/jquery-1.11.0.min.js"></script> 
+<script src="jquery/dist/jquery.min.js"></script> 
 <script src="reveal.js/js/reveal.js"></script>
 
 <script>
