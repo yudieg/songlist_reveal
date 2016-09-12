@@ -1,10 +1,9 @@
 {
     "name": "songlist-reveal",
-    "version":"1.8.1",
+    "version":"1.8.2",
     "main":"songlist_reveal.html",
     "dependencies": {
         "jquery":"1.11.0",
-        "reveal.js": "*",
-        "jquery-tubular":"*"
+        "reveal.js": "2.6.2"
     }
 }

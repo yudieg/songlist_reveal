@@ -8,7 +8,8 @@
   <button id="bt_convert">Convert</button>
 </div>
 
-<link rel="stylesheet" href="reveal.js/css/reveal.min.css" />
+<!-- <link rel="stylesheet" href="reveal.js/css/reveal.min.css" /> -->
+<link rel="stylesheet" href="reveal.js/css/reveal.css" />
 <link rel="stylesheet" href="reveal.js/css/theme/moon.css" />
 <style>
 
@@ -21,15 +22,23 @@
     width:100%;
     height:300px;
   }
-
+    .reveal section img{
+        box-shadow:none;        
+    }
    .reveal h2, .reveal h3, .reveal h4, .reveal h5, .reveal h6 {
     font-family:"Alike";
+    /*    font-family:"Gill Sans"; 
+    font-weight:lighter; */
     text-transform:none;
     line-height:1.2em;
     color:#fff;
     
   }
 
+  .reveal.has-parallax-background .backgrounds {
+      transition: all 30s ease 0s;
+  }
+  
   section.edit-mode{
     border:3px solid #f60;
   }
@@ -50,7 +59,7 @@
     font-family:Arial;
     color:#fff;
     font-size:3em;
-    background:#222;
+    background:#000;
   }
 
   .reveal section {
@@ -68,9 +77,9 @@
     z-index:1000;
     background: rgba(0,0,0,0.4);
     width:100%;
-    line-height:30px !important;
+    line-height:50px !important;
     height:30px;
-    font-size:1em;
+    font-size:10pt;
   }
   #controls .pad{
     position:absolute;
@@ -80,7 +89,9 @@
   }
 
   .reveal .backgrounds{
+    /* opacity:0.5; */
     opacity:0.5;
+
   }
   .slides .header{
     font-family:"League Gothic",Impact,sans-serif;
@@ -88,9 +99,9 @@
     opacity:0.5;
   }
   .reveal .slides section .fragment{
-    transition:all 30s ease 0s;
+    transition:all 1s ease 0s;
   }
-  .reveal .slides section .fragment.grow.visible{
+  .reveal .slides section .fragment.visible{
     transform:scale(1.5);
   }
 
@@ -104,7 +115,85 @@
     display:inherit;
     color:#ff0;
   }
+    .reveal .bgvideo {
+      position: fixed; 
+      top: -50%; 
+      left: -50%; 
+      width: 200%; 
+      height: 200%;
+      opacity:0.3;
+      background:#000;
+    }
+    .reveal .bgvideo video {
+      position: absolute; 
+      top: 0; 
+      left: 0; 
+      right: 0; 
+      bottom: 0; 
+      margin: auto; 
+      min-width: 50%;
+      min-height: 50%;
+    }
 
+    /* Menu */
+    .menu{
+      position:relative;
+      display:inline-block;
+      line-height:50px;
+    }
+    .menu a{
+      cursor:pointer;
+      display:inline-block;
+      height:30px;
+    }
+    .menu .submenu{
+      display:block;
+      position:absolute;
+      bottom:23px;
+      right:0px;
+      background:#000;
+      padding:10px;
+      display:none;
+      border-radius:10px;
+    }
+    .menu:hover .submenu{
+
+      display:block;
+    }
+    .menu ul, .menu li{
+      font-size:10pt;
+      list-style:none;
+      margin:0;
+      padding:0;
+      line-height:1em;
+    }
+    .video-menu{
+      width:150px;
+    }
+    .video-menu h4{
+      white-space:nowrap;
+      margin:0;
+      padding:3px 5px;
+    }
+    .bgvideo{
+      transition: opacity 1s ease 0s;
+    }
+    .menu a{
+      background:#555;
+      color:#fff;
+      border-radius:10px;
+      line-height:20px;
+      height:20px;
+      display:inline-block;
+      padding:2px 10px;
+    }
+
+    /* Toggle text background */
+    #container.black-text h1,
+    #container.black-text h2{
+      color:#260600;
+      text-shadow: 0 0 10px rgba(255,255,255,0.5);
+    }
  </style>
 
 <div id="container">
@@ -115,21 +204,44 @@
   </div>
   <div id="controls">
     <div class="pad">
-    <button id="bt_new_display">New Display</button>
-    <button id="bt_edit">Edit</button>
-    <select  id="input_bg">
-      <option value="">None</option>
-      <option value="images/black.gif">Black</option>
-      <option value="images/bible.jpg">Bible</option>
-      <option value="images/candle.jpg">Candle</option>
-      <option value="images/worship.jpg">Worship</option>
-      <option value="images/he_is_risen.jpg">He is Risen</option>
-      <option value="images/pink-blur.jpg">Pink Blur</option>
-      <option value="other">Other</option>
-    </select>
-    <input type="text" id="bg_other">
-    <button id="bt_change_background">Set Background</button>
-    <input type="text" id="txt_bible_search" placeholder="search bible">
+      <button id="bt_new_display">New Display</button>
+      <button id="bt_edit">Edit</button>
+      <button id="bt_toggle_text">Invert Text</button>
+      <select  id="input_bg">
+        <option value="">None</option>
+        <option value="images/black.gif">Black</option>
+        <option value="images/bible.jpg">Bible</option>
+        <option value="images/candle.jpg">Candle</option>
+        <option value="images/worship.jpg">Worship</option>
+        <option value="images/he_is_risen.jpg">He is Risen</option>
+        <option value="images/pink-blur.jpg">Pink Blur</option>
+        <option value="other">Other</option>
+      </select>
+      <input type="text" id="bg_other">
+      <button id="bt_change_background">Set Background</button>
+      <input type="text" id="txt_bible_search" placeholder="search bible">
+      <span class="menu">
+        <a>Video Menu</a>
+        <ul class="submenu video-menu">
+          <li>
+            <h4>Video Menu</h4>
+            <div><small>(Drop the video to the stage)</small></div>
+            <button id="bt_video">Select Video</button>
+            <button id="bt_video_remove">Remove Video</button>
+          </li>
+          <li>
+            Opacity: 
+            <select id="video-opacity"  value="122">
+              <option value="0">0</option>  
+              <option value="0.25">25%</option>  
+              <option value="0.5">50%</option>  
+              <option value="0.75">75%</option>  
+              <option value="1">100%</option>  
+
+            </select></li>
+          </li>
+        </ul>
+      </span>
     </div>
   </div>
 </div>
@@ -138,7 +250,6 @@
 <script src="reveal.js/lib/js/head.min.js"></script> 
 <script src="reveal.js/lib/js/jquery-1.11.0.min.js"></script> 
 <script src="reveal.js/js/reveal.js"></script>
-<script src="jquery.tubular.1.0.1/js/jquery.tubular.1.0.js"></script>
 
 <script>
 
@@ -197,6 +308,9 @@ $(function(){
   // - Button edit
   $('#bt_edit').click(edit_current_slide);
 
+  // - Button toggle text color
+  $('#bt_toggle_text').click(toggle_text);
+
   // - Search Bible
   $('#txt_bible_search').keyup(function(e){
     if(e.keyCode==13){
@@ -206,7 +320,7 @@ $(function(){
         console.log(r);
         var html = [title];
         for(var i in r){
-          html.push(r[i].verse   + '. ' + r[i].text.replace(/<a(.+)$/,''));
+          html.push(r[i].verse + '. ' + r[i].text.replace(/<a(.+)$/,''));
         }
 
         if(confirm("Add this to your display?\n\n" + html.join("\n") )){
@@ -244,12 +358,9 @@ $(function(){
           }
           
           //$(slide).html(txt);
-
           // Show on the other displays;
           var id = Reveal.getIndices();
           var content = $(slide).html();
-
-
 
         }
 
@@ -258,7 +369,36 @@ $(function(){
     }
   });
 
+  // Button Video
+  $('#bt_video').click(function(){
+    var url = prompt('video url');
+    if (url == null) {
+        return;
+    }
+    set_video_url(url);
+  });
+  $('#bt_video_remove').click(function(){
+    set_video_url('');
+  });
+
+  $('#video-opacity').change(function(){
+    set_video_opacity($(this).val());
+  });
+  set_video_opacity(0.5);
+  
+  window.video = localStorage.getItem('video');
+
+  if (window.video) {
+    var tmpVid = JSON.parse(window.video);
+    console.log(tmpVid);
+    setTimeout(function() {
+      set_video_url(tmpVid.url);
+    }, 1);
+  }
+
   $('#bt_convert').click(start);
+
+
 
   function start(){
     convert($('#strdata').val());
@@ -266,11 +406,21 @@ $(function(){
       controls:false,
       progress:false,
       history:true,
-      transition:'zoom',
+      transition: 'zoom',  // None - Fade - Slide - Convex - Concave - Zoom
+      //transition:'concave', // zoom
       margin:0.0,
 
-      parallaxBackgroundImage: 'images/cyan-blur.jpg',
-      parallaxBackgroundSize:'4800px 3600px',
+      //parallaxBackgroundImage: 'images/cyan-blur.jpg', parallaxBackgroundSize:'3200px 2000px',
+      //parallaxBackgroundImage: 'images/valentine.jpg', parallaxBackgroundSize:'3200px 2200px',
+      //parallaxBackgroundImage: 'images/red_bubbles.jpg', parallaxBackgroundSize:'3200px 2200px',
+      //parallaxBackgroundImage: 'images/pastel_bubbles.jpg', parallaxBackgroundSize:'3200px 2200px',
+      parallaxBackgroundImage: 'images/blue_bubbles.jpg', parallaxBackgroundSize:'3200px 2200px',
+      //parallaxBackgroundImage: 'images/polygon.jpg', parallaxBackgroundSize:'4200px 2200px',
+      //parallaxBackgroundImage: 'images/christmas_red_snowflakes.jpg', parallaxBackgroundSize:'4200px 2200px',
+      //parallaxBackgroundImage: 'images/green_concrete.jpg', parallaxBackgroundSize:'3200px 2000px',
+      //parallaxBackgroundImage: 'images/worship_parallax.jpg', parallaxBackgroundSize:'4200px 1000px',
+      //parallaxBackgroundImage: 'images/living_water.jpg', parallaxBackgroundSize:'4200px 1000px',
+      //parallaxBackgroundImage: 'images/rough_blue.jpg', parallaxBackgroundSize:'3200px 2000px',
       dependencies:[
        // {src:'reveal.js/plugin/search/search.js', async:true  }
       ]
@@ -374,13 +524,13 @@ $(function(){
       }
     })
 
-
-    //$('#result .backgrounds').hide();
-    // Background video
-    //var tubu_options = { videoId: 'MQwSGfuaacc', start: 3 };
-    //$('.state-background').tubular({ videoId: 'MQwSGfuaacc', start: 3 });
-
+    // Add video
+    var vid = $('<div class="bgvideo"><video autoplay="autopay" loop="loop" muted="muted"><source src="" type="video/mp4"></source></video></div>');
+    vid.hide();
+    $('#result').append(vid);
+    vid.insertBefore($('.state-background'));
   }
+
 
   function get_url_vars(){
       var vars = [], hash;
@@ -437,6 +587,7 @@ $(function(){
   window.show_slide = function(section, slide){
     Reveal.navigateTo(section,slide);
   }
+
 
 
 });
@@ -529,6 +680,93 @@ function get_current_parent_background(){
 
 }
 
+/**
+ * Example: 
+ * Concert: https://as.ftcdn.net/r/v1/pics/8e639c35986e3b5fa871600e3edf351e43a30687/home/video/1000/concert.mp4
+ * Crowd: https://as.ftcdn.net/r/v1/pics/48dd52b15905532aa22fca94484c122a10c9de69/home/video/1000/crowd.mp4
+ * Jelyfish: https://as.ftcdn.net/r/v1/pics/75821b7aef47c09d132fa48aa74660e41595b479/home/video/1000/jellyfish.mp4
+ * 
+ */
+function set_video_url(url){
+    var bgvideo = $('.bgvideo');
+    if (url == 'pause') {
+        // command pause
+        $('.bgvideo video')[0].pause();
+    } else if (url == 'play'){
+        // command play
+        $('.bgvideo video')[0].play();
+    } else if (url == 'loop'){
+        // command loop
+        $('.bgvideo video')[0].loop = !$('.bgvideo video')[0].loop ;
+    } else if (url == 'sound'){
+        // do nothing here. play display window only
+    } else {
+        bgvideo.fadeOut(function() {
+            $('.bgvideo video')[0].pause();
+            if (typeof window.video != 'object' || window.video == null){
+              window.video = {};
+            }
+            window.video.url = url;
+            
+            localStorage.setItem('video',JSON.stringify(window.video));
+            console.log(localStorage.getItem('video'));
+            $('.bgvideo video source').attr('src', url);
+            $('.bgvideo video').load();
+            $('.bgvideo video')[0].play();
+            if(url.indexOf('loop=') > -1) {
+              $('.bgvideo video')[0].loop = !$('.bgvideo video')[0].loop ;
+
+            }
+        }).fadeIn();
+    }
+
+
+    displays.forEach(function(i){
+        try{
+            i.set_video_url(url);
+            if(url.indexOf('sound=1') > -1|| url == 'sound'){
+                i.video_sound();
+            }
+
+        }catch(e){
+            alert(e);
+        }
+    });
+}
+
+function set_video_opacity(val) {
+    $('.bgvideo').css('opacity', val);
+    $('#video-opacity').val(val);
+    displays.forEach(function(i){
+        try{
+            i.set_video_opacity(val);
+        }catch(e){
+            alert(e);
+        }
+    });
+}
+
+function video_sound(){
+    var video = $('.bgvideo video');
+    video[0].muted = false;
+}
+
+function video_pause(){
+    var video = $('.bgvideo video');
+    video[0].pause();
+}
+
+function toggle_text(){
+    $('#container').toggleClass('black-text');
+    displays.forEach(function(i){
+        try{
+            i.toggle_text();
+        }catch(e){
+            alert(e);
+        }
+    });    
+}
+
 function get_verse(passage, callback ){
   $.ajax({
     "url" :'http://labs.bible.org/api/',
@@ -550,7 +788,7 @@ function get_verse(passage, callback ){
 <output id="list"></output>
 
 <script>
-  function handleFileSelect(evt) {
+  function handleFileDrop(evt) {
     evt.stopPropagation();
     evt.preventDefault();
 
@@ -560,17 +798,18 @@ function get_verse(passage, callback ){
     var output = [];
     var option;
     for (var i = 0, f; f = files[i]; i++) {
-      console.log(files[i].mozFullPath);
+      var file = files[i];
+      if (file.name.match(/(.+)mp4$/)) {
+        // Video file has to be in the video folder.
+        set_video_url('videos/' + file.name);
+        continue;
+      }
+
+      // Image file has to be in the images folder.
       option = $('<option value="images/' + files[i].name  + '">' + files[i].name + '</option>');
       $('#input_bg').append(option);
       $('#input_bg').val('images/' + files[i].name);// select it
       $('#bt_change_background').click();
-      /*
-      output.push('<li><strong>', escape(f.name), '</strong> (', f.type || 'n/a', ') - ',
-                  f.size, ' bytes, last modified: ',
-                  f.lastModifiedDate ? f.lastModifiedDate.toLocaleDateString() : 'n/a',
-                  '</li>');
-        */
     }
   }
 
@@ -584,7 +823,7 @@ function get_verse(passage, callback ){
   //var dropZone = document.getElementById('drop_zone');
   var dropZone = document.body;
   dropZone.addEventListener('dragover', handleDragOver, false);
-  dropZone.addEventListener('drop', handleFileSelect, false);
+  dropZone.addEventListener('drop', handleFileDrop, false);
 </script>
 
 
