@@ -17,22 +17,30 @@
 @import url(http://fonts.googleapis.com/css?family=Germania+One);
 @import url(http://fonts.googleapis.com/css?family=Fjalla+One);
 @import url(http://fonts.googleapis.com/css?family=Alike);
+@import url(https://fonts.googleapis.com/css?family=Sansita); 
 
   #strdata{
     width:100%;
     height:300px;
   }
     .reveal section img{
-        box-shadow:none;        
+        box-shadow:none;
+        background:none;
+        border:none;
     }
    .reveal h2, .reveal h3, .reveal h4, .reveal h5, .reveal h6 {
     font-family:"Alike";
+    font-family:"Sansita";
     /*    font-family:"Gill Sans"; 
     font-weight:lighter; */
     text-transform:none;
     line-height:1.2em;
     color:#fff;
-    
+
+-webkit-transition: color 0.3s, font-size 0.3s;
+   -moz-transition: color 0.3s, font-size 0.3s;
+     -o-transition: color 0.3s, font-size 0.3s;
+        transition: color 0.3s, font-size 0.3s;    
   }
 
   .reveal.has-parallax-background .backgrounds {
@@ -90,7 +98,8 @@
 
   .reveal .backgrounds{
     /* opacity:0.5; */
-    opacity:0.5;
+    opacity:1;
+    
 
   }
   .slides .header{
@@ -210,6 +219,11 @@
   }
     
  </style>
+<style id="custom-style">
+  .reveal h2 {
+
+  }
+</style>
 
 <div id="container">
   <div id="result" class="reveal">
@@ -257,19 +271,24 @@
           </li>
         </ul>
       </span>
+      <button id="bt_font_increase">Font +</button>
+      <button id="bt_font_decrease">Font -</button>
     </div>
   </div>
 </div>
 
 
 <script src="reveal.js/lib/js/head.min.js"></script> 
-<script src="jquery/dist/jquery.min.js"></script> 
+<script src="reveal.js/lib/js/jquery-1.11.0.min.js"></script> 
 <script src="reveal.js/js/reveal.js"></script>
 
 <script>
 
 var displays =[];
 var next = 0;
+var font_size_em = 2.2;
+var font_size_inc = 0.1;
+
 $(function(){
   var hash = get_url_vars()['data'];
   var current_slide ;
@@ -411,6 +430,18 @@ $(function(){
     }, 1);
   }
 
+
+  // Font size
+  $('#bt_font_increase').click(function(){
+    increase_font_size(0.1);
+    return false;
+  })
+  $('#bt_font_decrease').click(function(){
+    increase_font_size(-0.1);
+    return false;
+  })
+
+
   $('#bt_convert').click(start);
 
 
@@ -544,6 +575,9 @@ $(function(){
     vid.hide();
     $('#result').append(vid);
     vid.insertBefore($('.state-background'));
+
+    // reset font size
+    increase_font_size(0);
   }
 
 
@@ -779,7 +813,25 @@ function toggle_text(){
         }catch(e){
             alert(e);
         }
-    });    
+    });
+}
+
+function increase_font_size(inc){
+    font_size_em += inc;
+    var css = '.reveal h2{font-size: '+ font_size_em +'em}';
+    $('#custom-style').text(css);
+    displays.forEach(function(i){
+        try{
+            i.increase_font_size(inc);
+        }catch(e){
+            alert(e);
+        }
+    });
+
+
+}
+function get_font_size(){
+  return font_size_em;
 }
 
 function get_verse(passage, callback ){
