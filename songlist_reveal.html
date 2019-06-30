@@ -77,7 +77,43 @@
     font-family:Allura;
     text-transform:none;
   }
-  
+
+  #container.display{
+    cursor:none;
+  }
+  #container.display section line{
+    cursor:none !important;
+  }
+
+  /* Lines & Words */
+  .reveal section line{
+    font-size: 2.2em;
+    letter-spacing: -0.02em;
+    color:#fff;
+    font-family:"Sansita";
+    text-transform:none;
+    line-height:1.2em;
+    color:#fff;
+    display:block;
+    cursor:pointer;
+    transition: color 0.3s, font-size 0.3s;
+    line-height:1.5em
+  }
+
+  .reveal section line:hover{
+    font-size:2.8em;
+    white-space:nowrap;
+  }
+
+  /* Word Hover */
+  .reveal section line word{
+    transition: color 0.9s, font-size 0.9s;    
+  }
+  .reveal section line word:hover{
+    font-size:1.6em;
+    transition: color 0.3s, font-size 0.3s;    
+  }
+
   #controls{
     position:absolute;
     bottom:0;
@@ -604,7 +640,6 @@ $(function(){
     slides.forEach(function(i){
       
       i = i.replace(/\r/,'');
-      i = i.replace(/\n/g,'<br/>');
       //console.log(i);
       style = parse_style(i);
       i = i.replace(/\[.+\]/i,'');
@@ -612,16 +647,39 @@ $(function(){
       if(i.substr(0,1)=='-'){
         // create new section
        // alert("ERE");
+        i = i.replace(/\n/g,'<br/>');
         $section = $('<section '+ style +'></section>');
         $result.append($section);
         $section.append('<section><h1>'+ i.replace(/^\-/,'') +'</h1></section>')
       }else{
-        $section.append('<section '+ style +'><h2>'+ i +'</h2></section>')
+        //$section.append('<section '+ style +'><h2>'+ i +'</h2></section>')
+          i = breakApartLines(i); 
+        $section.append('<section '+ style +'>'+ i +'</section>')
 
         //$section.append('<section ><h2>'+ i +'</h2></section>')
       }
 
     })
+  }
+
+  function breakApartLines(text){
+
+    //return text.replace(/\n/g,'<br/>');
+
+      var lines = text.split("\n");
+      lines = lines.map(function(line){
+         var words = line.split(' ').map(function(word){
+            return '<word>'+ word +'</word>';
+         });
+         return '<line>' + words.join(' ') +'</line>';
+      });
+
+
+
+      text = lines.join('');
+      console.log(text);
+      return text;
+
   }
 
   function parse_style(str){
@@ -645,6 +703,7 @@ function open_window(){
   var display = window.open(document.location,'songlist_display','top=0,left=0,location=no,titlebar=no,toolbar=no,location=no,status=no,menubar=no,scrollbars=no');
   setTimeout(function(){
     display.jQuery('#controls').hide();
+    display.jQuery('#container').addClass('display');
   },2000);
   displays.push(display);
 }
@@ -818,7 +877,7 @@ function toggle_text(){
 
 function increase_font_size(inc){
     font_size_em += inc;
-    var css = '.reveal h2{font-size: '+ font_size_em +'em}';
+    var css = '.reveal section line{font-size: '+ font_size_em +'em}';
     $('#custom-style').text(css);
     displays.forEach(function(i){
         try{
