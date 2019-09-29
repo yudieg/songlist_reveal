@@ -57,7 +57,7 @@
 
   .reveal h1{
     text-shadow:0 0 20px rgba(255,255,255,0.4);
-
+    color:#fff
   }
   .reveal h2{
     letter-spacing:-0.02em;
@@ -295,6 +295,7 @@
     </div>
   </div>
 </div>
+
 
 <script src="reveal.js/lib/js/head.min.js"></script> 
 <script src="jquery/dist/jquery.min.js"></script> 
@@ -621,25 +622,23 @@ $(function(){
     $section = $('<section></section>');
     
     slides.forEach(function(i){
-      
       i = i.replace(/\r/,'');
       i = i.replace(/\n/g,'<br/>');
-      //console.log(i);
+      i = i.replace(/<br\/><(table|tr|td|thead|tbody|th)/g, function(i){
+        return  i.replace(/<br\/></,'<');
+      });
+
       style = parse_style(i);
       i = i.replace(/\[.+\]/i,'');
 
       if(i.substr(0,1)=='-'){
         // create new section
-       // alert("ERE");
         $section = $('<section '+ style +'></section>');
         $result.append($section);
-        $section.append('<section><h1>'+ i.replace(/^\-/,'') +'</h1></section>')
+        $section.append('<section><h1>'+ i.replace(/^\-/,'') +'</h1></section>');
       }else{
-        $section.append('<section '+ style +'><h2>'+ i +'</h2></section>')
-
-        //$section.append('<section ><h2>'+ i +'</h2></section>')
+        $section.append('<section '+ style +'><h2>'+ i +'</h2></section>');
       }
-
     })
   }
 
@@ -655,8 +654,6 @@ $(function(){
   window.show_slide = function(section, slide){
     Reveal.navigateTo(section,slide);
   }
-
-
 
 });
 

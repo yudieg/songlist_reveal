@@ -12,4 +12,13 @@ June 23, 2019</small>
 to equip and support the saints, and to reach and nurture people for Christ</medium>
 </em>
 <div><fibc-logo></fibc-logo> <small>Mission Statement</small></div>
->-
+
+>Small Groups
+<small><table width="100%" style="background:rgba(0,0,0,0.2); padding:10px;border-radius:0.5em;border:3px solid #eee">
+<tr><th>Area</th><th>Date</th><th>Time</th><th>Location</th></tr>
+<tr><td>Cypress</td><td>Friday, October 11</td><td>7:30pm</td><td>Hadi's</td></tr>
+<tr><td>Sugar Land</td><td>Thursday, October 10</td><td>7:30pm</td><td>Jim's</td></tr>
+<tr><td>Houston</td><td>Friday, October 4</td><td>7:30pm</td><td>Sam's</td></tr>
+<tr><td>Katy</td><td>Friday, October 4</td><td>7:30pm</td><td>Erick's</td></tr>
+<tr><td>Youth</td><td>Friday, October 11</td><td>7:00pm</td><td>Ask Fiona</td></tr>
+</table></small>
