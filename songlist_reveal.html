@@ -586,6 +586,11 @@ $(function(){
       }else{
         $('.slides .header').html("");
       }
+
+      if (typeof $(current_slide).attr('video') != 'undefined') {
+        console.log('set_video', $(current_slide).attr('video'));
+        set_video_url($(current_slide).attr('video'));
+      }
       //$('section').removeClass('zoom-ing');
       //setTimeout(function(){  $(Reveal.getCurrentSlide()).addClass('zoom-ing');},1500);
 
@@ -719,9 +724,9 @@ $(function(){
 
       if(i.substr(0,1)=='-'){
         // create new section
-        $section = $('<section '+ style +'></section>');
+        $section = $('<section></section>');
         $result.append($section);
-        $section.append('<section><h1>'+ i.replace(/^\-/,'') +'</h1></section>');
+        $section.append('<section '+ style +'><h1>'+ i.replace(/^\-/,'') +'</h1></section>');
       }else{
         $section.append('<section '+ style +'><h2>'+ i +'</h2></section>');
       }
@@ -833,6 +838,12 @@ function get_current_parent_background(){
 
 }
 
+function is_video_paused()
+{
+  console.log($('#bt_video_play').html().toLowerCase());
+  return ($('#bt_video_play').html().toLowerCase() == 'play');
+}
+
 /**
  * Example: 
  * Concert: https://as.ftcdn.net/r/v1/pics/8e639c35986e3b5fa871600e3edf351e43a30687/home/video/1000/concert.mp4
@@ -854,6 +865,7 @@ function set_video_url(url){
     } else if (url == 'sound'){
         // do nothing here. play display window only
     } else {
+        $('#video-seek').val(0);
         bgvideo.fadeOut(function() {
             $('.bgvideo video')[0].pause();
             if (typeof window.video != 'object' || window.video == null){
@@ -865,7 +877,11 @@ function set_video_url(url){
             console.log(localStorage.getItem('video'));
             $('.bgvideo video source').attr('src', url);
             $('.bgvideo video').load();
-            $('.bgvideo video')[0].play();
+            if (is_video_paused()) {
+              $('.bgvideo video')[0].pause();
+            } else {
+              $('.bgvideo video')[0].play();
+            }
             if(url.indexOf('loop=') > -1) {
               $('.bgvideo video')[0].loop = !$('.bgvideo video')[0].loop ;
 
