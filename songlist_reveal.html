@@ -1,5 +1,6 @@
 <html>
   <head>
+    <title>Songlist</title>
   </head>
 <body>
 
@@ -169,23 +170,40 @@
       display:inline-block;
       line-height:50px;
     }
-    .menu a{
-      cursor:pointer;
+    #controls .menu a,
+    #controls button,
+    #controls select {
       display:inline-block;
-      height:30px;
+      font-size:10pt;
+      border: 0px;
+      cursor:pointer;
+      background:#555;
+      color:#ddd;
+      opacity:0.8;
+      border-radius:5px;
+      height:25px;
+      line-height:0;
+      padding:2px 10px;
+      font-family:Arial;
     }
-    .menu .submenu{
+    #controls .menu a:hover,
+    #controls button:hover {
+      background:#666;
+      color:#fff;
+    }
+    .menu .submenu {
+      color:#aaa;
       display:block;
       position:absolute;
-      bottom:23px;
-      right:0px;
-      background:#000;
+      bottom:25px;
+      left:0px;
+      background:rgba(40,40,40,0.8);
       padding:10px;
       display:none;
-      border-radius:10px;
+      border-radius:5px;
     }
-    .menu:hover .submenu{
-
+    .menu:hover .submenu,
+    .menu.hover .submenu{
       display:block;
     }
     .menu ul, .menu li{
@@ -194,6 +212,13 @@
       margin:0;
       padding:0;
       line-height:1em;
+    }
+    .submenu li {
+      padding:6px 0;
+      line-height:1.2em;
+    }
+    .submenu button {
+      margin-bottom:2px;
     }
     .video-menu{
       width:150px;
@@ -205,15 +230,6 @@
     }
     .bgvideo{
       transition: opacity 1s ease 0s;
-    }
-    .menu a{
-      background:#555;
-      color:#fff;
-      border-radius:10px;
-      line-height:20px;
-      height:20px;
-      display:inline-block;
-      padding:2px 10px;
     }
 
     /* Toggle text background */
@@ -267,26 +283,38 @@
       </select>
       <input type="text" id="bg_other">
       <button id="bt_change_background">Set Background</button>
-      <input type="text" id="txt_bible_search" placeholder="search bible">
+      <!-- <input type="text" id="txt_bible_search" placeholder="search bible"> -->
       <span class="menu">
-        <a>Video Menu</a>
+        <button>Video Menu</button>
         <ul class="submenu video-menu">
           <li>
-            <h4>Video Menu</h4>
-            <div><small>(Drop the video to the stage)</small></div>
-            <button id="bt_video">Select Video</button>
-            <button id="bt_video_remove">Remove Video</button>
+            <label>Video Control:</label> 
+            <div>
+              <input id="video-seek" type="range" class="slider">
+            </div>
+            <div>
+              <button id="bt_video_mute" style="width:45%">Unmute</button>
+              <button id="bt_video_play"style="width:45%">Pause</button>
+            </div>
           </li>
           <li>
-            Opacity: 
-            <select id="video-opacity"  value="122">
-              <option value="0">0</option>  
-              <option value="0.25">25%</option>  
-              <option value="0.5">50%</option>  
-              <option value="0.75">75%</option>  
-              <option value="1">100%</option>  
+            <label>Opacity:</label> 
+            <input id="video-opacity" type="range" min="0" max="1" value="0.5" step="0.1" class="slider">
+          </li>
+          <li>
+            <label>Size:</label> 
+            <input id="video-size" type="range" min="10" max="100" value="100" step="1" class="slider">
+          </li>
+          <li>
+            <label>Content Y Offset:</label> 
+            <input id="content-y-offset" type="range" min="-100" max="100" value="0" step="5" class="slider">
+          </li>
 
-            </select></li>
+          <li>
+            <button id="bt_video">Select Video</button>
+            <button id="bt_video_remove">Remove Video</button>
+            <div><small>(Drop the video to the stage)</small></div>
+
           </li>
         </ul>
       </span>
@@ -434,19 +462,67 @@ $(function(){
     set_video_url('');
   });
 
+  $('#bt_video_mute').click(function(){
+    if ($(this).html().toLowerCase() == 'unmute') {
+      $(this).html('Mute');
+      $('video').prop('muted', false);
+    } else {
+      $(this).html('Unmute');
+      $('video').prop('muted', true);
+    }
+  });
+
+  $('#bt_video_play').click(function(){
+    if ($(this).html().toLowerCase() == 'pause') {
+      set_video_url('pause');
+      $(this).html('Play');
+    } else {
+      set_video_url('play');
+      $(this).html('Pause');
+    }
+  })
+
+  $('#video-size').change(function(){
+    set_video_size($(this).val());
+  });
+
+  $('#content-y-offset').change(function(){
+    var css = {'margin-top': $(this).val() + '%'};
+    $('#result').animate(css);
+  });
+
   $('#video-opacity').change(function(){
     set_video_opacity($(this).val());
   });
   set_video_opacity(0.5);
-  
-  window.video = localStorage.getItem('video');
 
+  $('#video-seek').on('mousedown', function(){
+     $(this).addClass('seeking');
+  });
+
+  $('#video-seek').on('mouseup', function(){
+    var video = $('.bgVideo video').get(0);
+    var percent = $(this).val();
+    video.currentTime = video.duration * (percent/100);
+    $(this).removeClass('seeking');
+  });
+
+
+  // Autoload video
+  window.video = localStorage.getItem('video');
   if (window.video) {
     var tmpVid = JSON.parse(window.video);
     console.log(tmpVid);
     setTimeout(function() {
       set_video_url(tmpVid.url);
     }, 1);
+  }
+
+  // Autoload background
+  if(localStorage.getItem('background')) {
+    setTimeout(function(){
+      change_background(localStorage.getItem('background'));
+    }, 100);
   }
 
 
@@ -596,6 +672,16 @@ $(function(){
     $('#result').append(vid);
     vid.insertBefore($('.state-background'));
 
+    var video = vid.find('video').get(0);
+    video.addEventListener("timeupdate", function () {
+      if ($('#video-seek').hasClass('seeking')) {
+        return;
+      }
+      var myVideo = $(this)[0];
+      var value = (100 / myVideo.duration) * myVideo.currentTime;
+      $('#video-seek').val(value);
+    });
+
     // reset font size
     increase_font_size(0);
   }
@@ -655,7 +741,7 @@ $(function(){
     Reveal.navigateTo(section,slide);
   }
 
-});
+}); // document.load
 
 function open_window(){
   var display = window.open(document.location,'songlist_display','top=0,left=0,location=no,titlebar=no,toolbar=no,location=no,status=no,menubar=no,scrollbars=no');
@@ -674,6 +760,8 @@ function change_background(filename ){
   }else{
     $new_bg.css('background-image',"url("+ filename +")");
   }
+  
+  localStorage.setItem('background', filename);
 
   $new_bg.insertAfter($cur_bg);
   setTimeout(function(){
@@ -811,6 +899,29 @@ function set_video_opacity(val) {
     });
 }
 
+function set_video_size(val){
+  var css, cssResult, marginTop;
+  if (val == 100) {
+    css = {top: '-50%', height: '200%'};
+    cssResult = {'margin-top': 0};
+  } else {
+    css = {top: 0, height: val  + '%'};
+    marginTop = (100 - parseInt(val.replace(/%/,'')))/2;
+    cssResult = {'margin-top': marginTop+ '%'};
+  } 
+  $('.bgvideo').animate(css);
+  //$('#result').css(cssResult);
+}
+
+function set_video_play(val){
+  var vid = $('.bgvideo video').get(0);
+  if (val) {
+    vid.play();
+  }else{
+    vid.pause();
+  }
+}
+
 function video_sound(){
     var video = $('.bgvideo video');
     video[0].muted = false;
@@ -867,7 +978,6 @@ function get_verse(passage, callback ){
 
 </script>
 
-<div id="drop_zone">Drop files here</div>
 <output id="list"></output>
 
 <script>
