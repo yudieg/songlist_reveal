@@ -853,21 +853,36 @@ function is_video_paused()
  */
 function set_video_url(url){
     var bgvideo = $('.bgvideo');
+    var video = $('.bgvideo video').get(0);
+    if (url == 'webcam') {
+      if (navigator.mediaDevices.getUserMedia) {
+          navigator.mediaDevices.getUserMedia({ video: true })
+          .then(function (stream) {
+            video.srcObject = stream;
+          })
+          .catch(function (err0r) {
+            console.log("Something went wrong!");
+          });
+      }
+    } else {
+      video.srcObject = null;
+    }
+
     if (url == 'pause') {
         // command pause
-        $('.bgvideo video')[0].pause();
+        video.pause();
     } else if (url == 'play'){
         // command play
-        $('.bgvideo video')[0].play();
+        video.play();
     } else if (url == 'loop'){
         // command loop
-        $('.bgvideo video')[0].loop = !$('.bgvideo video')[0].loop ;
+        video.loop = !video.loop ;
     } else if (url == 'sound'){
         // do nothing here. play display window only
     } else {
         $('#video-seek').val(0);
         bgvideo.fadeOut(function() {
-            $('.bgvideo video')[0].pause();
+            video.pause();
             if (typeof window.video != 'object' || window.video == null){
               window.video = {};
             }
@@ -878,12 +893,12 @@ function set_video_url(url){
             $('.bgvideo video source').attr('src', url);
             $('.bgvideo video').load();
             if (is_video_paused()) {
-              $('.bgvideo video')[0].pause();
+              video.pause();
             } else {
-              $('.bgvideo video')[0].play();
+              video.play();
             }
             if(url.indexOf('loop=') > -1) {
-              $('.bgvideo video')[0].loop = !$('.bgvideo video')[0].loop ;
+              video.loop = !video.loop ;
 
             }
         }).fadeIn();
