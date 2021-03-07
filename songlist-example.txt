@@ -1,4 +1,4 @@
-strdata=
+strdata=[video="webcam"]
 >-
 <fibc-logo></fibc-logo>
 <small>Welcome to Sunday Service

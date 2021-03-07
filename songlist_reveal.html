@@ -274,6 +274,7 @@
       <select  id="input_bg">
         <option value="">None</option>
         <option value="images/black.gif">Black</option>
+        <option value="images/blue_bubbles.jpg">Blue Bubbles</option>
         <option value="images/bible.jpg">Bible</option>
         <option value="images/candle.jpg">Candle</option>
         <option value="images/worship.jpg">Worship</option>
@@ -313,6 +314,7 @@
           <li>
             <button id="bt_video">Select Video</button>
             <button id="bt_video_remove">Remove Video</button>
+            <button id="bt_preset_split">Preset Split</button>
             <div><small>(Drop the video to the stage)</small></div>
 
           </li>
@@ -326,7 +328,8 @@
 
 
 <script src="reveal.js/lib/js/head.min.js"></script> 
-<script src="jquery/dist/jquery.min.js"></script> 
+<script src="reveal.js/lib/js/jquery-1.11.0.min.js"></script> 
+<script src="jquery/dist/jquery.min.js"></script>
 <script src="reveal.js/js/reveal.js"></script>
 
 <script>
@@ -462,6 +465,13 @@ $(function(){
     set_video_url('');
   });
 
+  $('#bt_preset_split').click(function(){
+      $('#video-size').val(40).trigger('change');
+      set_font_size(1.6);
+      $('#content-y-offset').val(12).trigger('change');
+      $('#video-opacity').val(1).trigger('change');
+  });
+
   $('#bt_video_mute').click(function(){
     if ($(this).html().toLowerCase() == 'unmute') {
       $(this).html('Mute');
@@ -556,7 +566,8 @@ $(function(){
       //parallaxBackgroundImage: 'images/valentine.jpg', parallaxBackgroundSize:'3200px 2200px',
       //parallaxBackgroundImage: 'images/red_bubbles.jpg', parallaxBackgroundSize:'3200px 2200px',
       //parallaxBackgroundImage: 'images/pastel_bubbles.jpg', parallaxBackgroundSize:'3200px 2200px',
-      parallaxBackgroundImage: 'images/blue_bubbles.jpg', parallaxBackgroundSize:'3200px 2200px',
+      //parallaxBackgroundImage: 'images/blue_bubbles.jpg', parallaxBackgroundSize:'3200px 2200px',
+      parallaxBackgroundImage: 'images/black.gif', parallaxBackgroundSize:'3200px 2200px',
       //parallaxBackgroundImage: 'images/polygon.jpg', parallaxBackgroundSize:'4200px 2200px',
       //parallaxBackgroundImage: 'images/christmas_red_snowflakes.jpg', parallaxBackgroundSize:'4200px 2200px',
       //parallaxBackgroundImage: 'images/green_concrete.jpg', parallaxBackgroundSize:'3200px 2000px',
@@ -856,12 +867,14 @@ function set_video_url(url){
     var video = $('.bgvideo video').get(0);
     if (url == 'webcam') {
       if (navigator.mediaDevices.getUserMedia) {
-          navigator.mediaDevices.getUserMedia({ video: true })
+          navigator.mediaDevices.getUserMedia({ 
+            video: { width: 1280, height: 720}
+          })
           .then(function (stream) {
             video.srcObject = stream;
           })
-          .catch(function (err0r) {
-            console.log("Something went wrong!");
+          .catch(function (error) {
+            console.log("Something went wrong!", error);
           });
       }
     } else {
@@ -976,8 +989,7 @@ function toggle_text(){
 
 function increase_font_size(inc){
     font_size_em += inc;
-    var css = '.reveal h2{font-size: '+ font_size_em +'em}';
-    $('#custom-style').text(css);
+    set_font_size(font_size_em);
     displays.forEach(function(i){
         try{
             i.increase_font_size(inc);
@@ -985,9 +997,15 @@ function increase_font_size(inc){
             alert(e);
         }
     });
-
-
 }
+
+function set_font_size(size_em)
+{
+    font_size_em = size_em;
+    var css = '.reveal h2{font-size: '+ font_size_em +'em}';
+    $('#custom-style').text(css);
+}
+
 function get_font_size(){
   return font_size_em;
 }
