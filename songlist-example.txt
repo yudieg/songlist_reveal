@@ -1,5 +1,5 @@
-strdata=[video="webcam"]
->-
+strdata=
+>-[video="webcam"]
 <fibc-logo></fibc-logo>
 <small>Welcome to Sunday Service
 June 23, 2019</small>

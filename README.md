@@ -7,9 +7,23 @@ This controller can launch another instance of songlist window that act as prese
 
 ## Installation
 
-You need to have Bower installed. Once you clone this repo, you can run
+You need to have Bower installed. 
+`brew install bower`
+
+Once you clone this repo, you can run
 
 `bower install`
+
+
+## Firefox Config
+
+1. Type "about:config" on the address bar.
+   (Click "I Accept The Risk" button when the warning come out)
+
+2. Enter "security.fileuri.strict_origin_policy" on the Search box
+
+3. Double click the item value from true to  false
+
 
 ## songlist.txt Syntax
 
