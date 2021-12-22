@@ -1,13 +1,29 @@
 strdata=
->-[video="webcam"]
-<fibc-logo></fibc-logo>
-<small>Welcome to Sunday Service
-June 23, 2019</small>
-
->-Title
->Lyrics
+>-[video="webcam"]<small><small>Use your cam for bulletin👇</small></small>
+<fibc-logo></fibc-logo> <img width="35%" src="images/fibc-bulletin-qrcode.jpg">
+<small>Welcome to FIBC Sunday Service
+December 19th, 2021</small>
 
 >-
+>-Song 1
+>Verse 1
+>Verse 2
+><note>Chorus:</note>
+Chorus
+Chorus
+Chorus
+
+>-
+>-Song 2
+>Verse 1
+>Verse 2
+><note>Chorus:</note>
+Chorus
+Chorus
+Chorus
+
+>-
+>-Announcements
 ><em><medium>FIBC lives passionately to worship God,
 to equip and support the saints, and to reach and nurture people for Christ</medium>
 </em>

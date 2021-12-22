@@ -68,6 +68,10 @@
     font-size:0.8em;
   }
 
+  .reveal pink{
+    color: pink
+  }
+
   .reveal section.present{
     text-shadow:0 0 10px rgba(0,0,0,0.7);
   }
@@ -170,6 +174,13 @@
       display:inline-block;
       line-height:50px;
     }
+    #controls > * {
+      opacity:0;
+    }
+    #controls:hover > * {
+      opacity:100;
+    }
+
     #controls .menu a,
     #controls button,
     #controls select {
@@ -227,6 +238,13 @@
       white-space:nowrap;
       margin:0;
       padding:3px 5px;
+    }
+    #controls .video_buttons button{
+      font-size:8pt;
+      height:18px;
+    }
+    #controls input[type="range"] {
+      width:100%;
     }
     .bgvideo{
       transition: opacity 1s ease 0s;
@@ -311,12 +329,13 @@
             <input id="content-y-offset" type="range" min="-100" max="100" value="0" step="5" class="slider">
           </li>
 
-          <li>
+          <li class="video_buttons">
             <button id="bt_video">Select Video</button>
-            <button id="bt_video_remove">Remove Video</button>
-            <button id="bt_preset_split">Preset Split</button>
+            <button id="bt_video_remove">No Video</button>
+            <button id="bt_video_webcam">Webcam</button>
+            <button id="bt_preset_split">Split</button>
+            <button id="bt_preset_fit">Full</button>
             <div><small>(Drop the video to the stage)</small></div>
-
           </li>
         </ul>
       </span>
@@ -328,7 +347,6 @@
 
 
 <script src="reveal.js/lib/js/head.min.js"></script> 
-<script src="reveal.js/lib/js/jquery-1.11.0.min.js"></script> 
 <script src="jquery/dist/jquery.min.js"></script>
 <script src="reveal.js/js/reveal.js"></script>
 
@@ -464,14 +482,21 @@ $(function(){
   $('#bt_video_remove').click(function(){
     set_video_url('');
   });
-
+  $('#bt_video_webcam').click(function(){
+    set_video_url('webcam');
+  });
   $('#bt_preset_split').click(function(){
-      $('#video-size').val(40).trigger('change');
+      $('#video-size').val(45).trigger('change');
       set_font_size(1.6);
-      $('#content-y-offset').val(12).trigger('change');
+      $('#content-y-offset').val(16).trigger('change');
       $('#video-opacity').val(1).trigger('change');
   });
-
+  $('#bt_preset_fit').click(function(){
+      $('#video-size').val(90).trigger('change');
+      set_font_size(2.2);
+      $('#content-y-offset').val(0).trigger('change');
+      $('#video-opacity').val(1).trigger('change');
+  });
   $('#bt_video_mute').click(function(){
     if ($(this).html().toLowerCase() == 'unmute') {
       $(this).html('Mute');
@@ -513,7 +538,8 @@ $(function(){
   $('#video-seek').on('mouseup', function(){
     var video = $('.bgVideo video').get(0);
     var percent = $(this).val();
-    video.currentTime = video.duration * (percent/100);
+    set_video_time(video.duration * (percent/100));
+
     $(this).removeClass('seeking');
   });
 
@@ -680,6 +706,15 @@ $(function(){
           i.show_slide( $(curslide).data('indexH'), $(curslide).data('indexV'));
         });
       }
+      if (e.altKey && e.keyCode == 83) {
+        // Alt + s (83)
+        $('#bt_preset_split').trigger('click');
+      } else if (e.altKey && e.keyCode == 70) {
+        // Alt + f (70);
+        $('#bt_preset_fit').trigger('click');
+      }
+
+      console.log('key', e.altKey, e.keyCode);
     })
 
     // Add video
@@ -763,8 +798,14 @@ function open_window(){
   var display = window.open(document.location,'songlist_display','top=0,left=0,location=no,titlebar=no,toolbar=no,location=no,status=no,menubar=no,scrollbars=no');
   setTimeout(function(){
     display.jQuery('#controls').hide();
+    display.setDisplayId(displays.length + 1);
   },2000);
   displays.push(display);
+}
+
+window.displayId = null;
+window.setDisplayId = function(id){
+  window.displayId = id;
 }
 
 function change_background(filename ){
@@ -865,7 +906,11 @@ function is_video_paused()
 function set_video_url(url){
     var bgvideo = $('.bgvideo');
     var video = $('.bgvideo video').get(0);
-    if (url == 'webcam') {
+
+    console.log('pos', video.currentTime);
+    console.log('url', url);
+
+    if (url == 'webcam' && !displayId) {
       if (navigator.mediaDevices.getUserMedia) {
           navigator.mediaDevices.getUserMedia({ 
             video: { width: 1280, height: 720}
@@ -877,7 +922,7 @@ function set_video_url(url){
             console.log("Something went wrong!", error);
           });
       }
-    } else {
+    } else if (url == "") {
       video.srcObject = null;
     }
 
@@ -896,6 +941,10 @@ function set_video_url(url){
         $('#video-seek').val(0);
         bgvideo.fadeOut(function() {
             video.pause();
+            if (url !== 'webcam') {
+              video.srcObject = null;
+            }
+
             if (typeof window.video != 'object' || window.video == null){
               window.video = {};
             }
@@ -920,6 +969,9 @@ function set_video_url(url){
 
     displays.forEach(function(i){
         try{
+            if (url == 'webcam') {
+              return; // do not set webcam to display;
+            }
             i.set_video_url(url);
             if(url.indexOf('sound=1') > -1|| url == 'sound'){
                 i.video_sound();
@@ -929,6 +981,19 @@ function set_video_url(url){
             alert(e);
         }
     });
+}
+
+function set_video_time(val) {
+    var vid = $('.bgvideo video').get(0);
+    vid.currentTime = val;
+    displays.forEach(function(i){
+        try{
+            i.set_video_time(val);
+        }catch(e){
+            alert(e);
+        }
+    });
+
 }
 
 function set_video_opacity(val) {
