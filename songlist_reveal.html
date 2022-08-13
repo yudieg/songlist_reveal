@@ -287,6 +287,7 @@
   <div id="controls">
     <div class="pad">
       <button id="bt_new_display">New Display</button>
+      <button id="bt_reload">Reload</button>
       <button id="bt_edit">Edit</button>
       <button id="bt_toggle_text">Invert Text</button>
       <select  id="input_bg">
@@ -356,6 +357,8 @@ var displays =[];
 var next = 0;
 var font_size_em = 2.2;
 var font_size_inc = 0.1;
+var lastSlide = null;
+
 
 $(function(){
   var hash = get_url_vars()['data'];
@@ -363,16 +366,48 @@ $(function(){
 
   if(hash=='' || hash==undefined) hash = 'songlist.txt';
 
-  $.get(hash).done(function(r){
+  function loadData(){
+    return $.get(hash).done(function(r){
 
-  }).fail(function(e){
-    $('#strdata').val(e.responseText);
-    start();
-  });
+    }).fail(function(e){
+      $('#strdata').val(e.responseText);
+      start();
+    });
+  }
+
+  loadData();
+  window.loadData = loadData;
+
+  window.reloadData = function(){
+    return loadData()
+    .fail(function(){
+      console.log('lastSlide', lastSlide);
+      if (lastSlide) {
+          show_slide(lastSlide.indexh, lastSlide.indexv);
+          displays.forEach(function(display){
+              if (lastSlide) {
+                display.show_slide(lastSlide.indexh, lastSlide.indexv);
+              }
+          })
+      }
+
+      displays.forEach(function(display){
+          display.reloadData()
+          .fail(function(){
+              if (lastSlide) {
+                display.show_slide(lastSlide.indexh, lastSlide.indexv);
+              }
+          });
+      })
+
+    });
+
+  }
 
   // Assign events
   // - Button new display
   $('#bt_new_display').click(function(){open_window();});
+  $('#bt_reload').click(function(){reloadData();});
 
   $('#input_bg').change(function(){
     if($(this).val() =='other'){
@@ -486,9 +521,9 @@ $(function(){
     set_video_url('webcam');
   });
   $('#bt_preset_split').click(function(){
-      $('#video-size').val(45).trigger('change');
+      $('#video-size').val(65).trigger('change');
       set_font_size(1.6);
-      $('#content-y-offset').val(16).trigger('change');
+      $('#content-y-offset').val(20).trigger('change');
       $('#video-opacity').val(1).trigger('change');
   });
   $('#bt_preset_fit').click(function(){
@@ -631,11 +666,14 @@ $(function(){
       //$('section').removeClass('zoom-ing');
       //setTimeout(function(){  $(Reveal.getCurrentSlide()).addClass('zoom-ing');},1500);
 
+      lastSlide = {indexh: e.indexh, indexv: e.indexv};
+
       // Display window(s)
       displays.forEach(function(i){
         try{
-          if(!$('#result').hasClass('overview'))
+          if(!$('#result').hasClass('overview')){
             i.show_slide(e.indexh, e.indexv);
+          }
         }catch(e){
           alert(e);
         }
@@ -752,6 +790,9 @@ $(function(){
 
   function convert(str){
     $result = $('#result .slides');
+    
+    $result.find('section').remove();
+
     str = str.substr(10);
     var slides = str.split("\n>");
     //console.log(slides);
@@ -795,6 +836,10 @@ $(function(){
 }); // document.load
 
 function open_window(){
+  if (displays.length) {
+    reloadData();
+    return;
+  }
   var display = window.open(document.location,'songlist_display','top=0,left=0,location=no,titlebar=no,toolbar=no,location=no,status=no,menubar=no,scrollbars=no');
   setTimeout(function(){
     display.jQuery('#controls').hide();
