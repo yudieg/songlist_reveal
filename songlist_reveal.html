@@ -75,6 +75,10 @@
   .reveal section.present{
     text-shadow:0 0 10px rgba(0,0,0,0.7);
   }
+  .reveal.overview .slides section section.present {
+    background:rgba(100,100,100,0.5);
+    border-radius: 5px;
+  }
 
   fibc-logo {
     display:inline-block;
@@ -1064,6 +1068,15 @@ function set_video_size(val){
     cssResult = {'margin-top': marginTop+ '%'};
   } 
   $('.bgvideo').animate(css);
+
+  displays.forEach(function(i){
+      try{
+          i.set_video_size(val);
+      }catch(e){
+          alert(e);
+      }
+  });
+
   //$('#result').css(cssResult);
 }
 
