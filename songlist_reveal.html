@@ -1144,8 +1144,54 @@ function get_verse(passage, callback ){
     }
   }).done(function(r){
     callback(r);
-
   })
+}
+
+// ESV API Bible fetcher
+// You must provide your own ESV API key from https://api.esv.org/account/create-application/
+// Replace 'YOUR_ESV_API_KEY_HERE' below with your actual key.
+function get_verse_esv(passage, callback) {
+  var apiKey = 'cb3f7de624ea5737a7ca2294b4ebae51fcbfbbe0'; // <-- PUT YOUR ESV API KEY HERE
+  $.ajax({
+    url: 'https://api.esv.org/v3/passage/text/',
+    method: 'GET',
+    dataType: 'json',
+    headers: {
+      'Authorization': 'Token ' + apiKey
+    },
+    data: {
+      'q': passage,
+      'include-passage-references': false,
+      'include-verse-numbers': true,
+      'include-footnotes': false,
+      'include-headings': false,
+      'include-selahs': false,
+      'indent-paragraphs': 0,
+      'indent-poetry': false,
+      'line-length': 0
+    },
+    success: function(data) {
+      // Parse ESV API response into array of {verse, text}
+      var verses = [];
+      if(data && data.passages && data.passages.length) {
+        var text = data.passages[0];
+        // Remove (ESV) at end if present
+        text = text.replace(/\(ESV\)\s*$/, '').trim();
+        // Split by [n] markers, which are the verse numbers
+        var verseParts = text.split(/\s*\[(\d+)\]\s*/).filter(function(x){return x!==''});
+        // verseParts will be like: [verseNum1, verseText1, verseNum2, verseText2, ...]
+        for (var i = 0; i < verseParts.length-1; i += 2) {
+          var verseNum = verseParts[i];
+          var verseText = verseParts[i+1].replace(/\s+/g, ' ').replace(/^\]|\[$/g, '').trim();
+          verses.push({verse: verseNum, text: verseText});
+        }
+      }
+      callback(verses);
+    },
+    error: function() {
+      callback([]);
+    }
+  });
 }
 
 
@@ -1240,7 +1286,7 @@ $(function() {
     let promptMsg = 'Enter scripture reference (e.g., John 3:16-18):';
     let passage = prompt(promptMsg, last);
     if (!passage) return;
-    get_verse(passage, function(verses) {
+    get_verse_esv(passage, function(verses) {
       if (!verses || !verses.length) {
         alert('No verses found.');
         return;
@@ -1250,12 +1296,13 @@ $(function() {
         toInsert += `><small>${v.verse}</small> ${v.text.trim()}\n`;
       });
       $('#bibleResult').val(toInsert);
-      $('#bibleModalTitle').text(passage);
+      $('#bibleModalTitle').text(passage + ' (ESV)');
       $('#bibleModal').fadeIn();
       // Store the successful search term
       localStorage.setItem('bible_last_search', passage);
     });
   });
+
   $('#bibleModalClose').click(function() {
     $('#bibleModal').fadeOut();
   });
