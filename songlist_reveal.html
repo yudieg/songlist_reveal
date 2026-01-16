@@ -75,6 +75,10 @@
   .reveal section.present{
     text-shadow:0 0 10px rgba(0,0,0,0.7);
   }
+  .reveal.overview .slides section section.present {
+    background:rgba(100,100,100,0.5);
+    border-radius: 5px;
+  }
 
   fibc-logo {
     display:inline-block;
@@ -287,6 +291,7 @@
   <div id="controls">
     <div class="pad">
       <button id="bt_new_display">New Display</button>
+      <button id="bt_reload">Reload</button>
       <button id="bt_edit">Edit</button>
       <button id="bt_toggle_text">Invert Text</button>
       <select  id="input_bg">
@@ -341,6 +346,7 @@
       </span>
       <button id="bt_font_increase">Font +</button>
       <button id="bt_font_decrease">Font -</button>
+      <button id="bt_bible">Bible</button>
     </div>
   </div>
 </div>
@@ -356,6 +362,8 @@ var displays =[];
 var next = 0;
 var font_size_em = 2.2;
 var font_size_inc = 0.1;
+var lastSlide = null;
+
 
 $(function(){
   var hash = get_url_vars()['data'];
@@ -363,16 +371,48 @@ $(function(){
 
   if(hash=='' || hash==undefined) hash = 'songlist.txt';
 
-  $.get(hash).done(function(r){
+  function loadData(){
+    return $.get(hash).done(function(r){
 
-  }).fail(function(e){
-    $('#strdata').val(e.responseText);
-    start();
-  });
+    }).fail(function(e){
+      $('#strdata').val(e.responseText);
+      start();
+    });
+  }
+
+  loadData();
+  window.loadData = loadData;
+
+  window.reloadData = function(){
+    return loadData()
+    .fail(function(){
+      console.log('lastSlide', lastSlide);
+      if (lastSlide) {
+          show_slide(lastSlide.indexh, lastSlide.indexv);
+          displays.forEach(function(display){
+              if (lastSlide) {
+                display.show_slide(lastSlide.indexh, lastSlide.indexv);
+              }
+          })
+      }
+
+      displays.forEach(function(display){
+          display.reloadData()
+          .fail(function(){
+              if (lastSlide) {
+                display.show_slide(lastSlide.indexh, lastSlide.indexv);
+              }
+          });
+      })
+
+    });
+
+  }
 
   // Assign events
   // - Button new display
   $('#bt_new_display').click(function(){open_window();});
+  $('#bt_reload').click(function(){reloadData();});
 
   $('#input_bg').change(function(){
     if($(this).val() =='other'){
@@ -486,9 +526,9 @@ $(function(){
     set_video_url('webcam');
   });
   $('#bt_preset_split').click(function(){
-      $('#video-size').val(45).trigger('change');
+      $('#video-size').val(65).trigger('change');
       set_font_size(1.6);
-      $('#content-y-offset').val(16).trigger('change');
+      $('#content-y-offset').val(20).trigger('change');
       $('#video-opacity').val(1).trigger('change');
   });
   $('#bt_preset_fit').click(function(){
@@ -631,11 +671,14 @@ $(function(){
       //$('section').removeClass('zoom-ing');
       //setTimeout(function(){  $(Reveal.getCurrentSlide()).addClass('zoom-ing');},1500);
 
+      lastSlide = {indexh: e.indexh, indexv: e.indexv};
+
       // Display window(s)
       displays.forEach(function(i){
         try{
-          if(!$('#result').hasClass('overview'))
+          if(!$('#result').hasClass('overview')){
             i.show_slide(e.indexh, e.indexv);
+          }
         }catch(e){
           alert(e);
         }
@@ -752,6 +795,9 @@ $(function(){
 
   function convert(str){
     $result = $('#result .slides');
+    
+    $result.find('section').remove();
+
     str = str.substr(10);
     var slides = str.split("\n>");
     //console.log(slides);
@@ -795,6 +841,10 @@ $(function(){
 }); // document.load
 
 function open_window(){
+  if (displays.length) {
+    reloadData();
+    return;
+  }
   var display = window.open(document.location,'songlist_display','top=0,left=0,location=no,titlebar=no,toolbar=no,location=no,status=no,menubar=no,scrollbars=no');
   setTimeout(function(){
     display.jQuery('#controls').hide();
@@ -1019,6 +1069,15 @@ function set_video_size(val){
     cssResult = {'margin-top': marginTop+ '%'};
   } 
   $('.bgvideo').animate(css);
+
+  displays.forEach(function(i){
+      try{
+          i.set_video_size(val);
+      }catch(e){
+          alert(e);
+      }
+  });
+
   //$('#result').css(cssResult);
 }
 
@@ -1085,8 +1144,54 @@ function get_verse(passage, callback ){
     }
   }).done(function(r){
     callback(r);
-
   })
+}
+
+// ESV API Bible fetcher
+// You must provide your own ESV API key from https://api.esv.org/account/create-application/
+// Replace 'YOUR_ESV_API_KEY_HERE' below with your actual key.
+function get_verse_esv(passage, callback) {
+  var apiKey = 'cb3f7de624ea5737a7ca2294b4ebae51fcbfbbe0'; // <-- PUT YOUR ESV API KEY HERE
+  $.ajax({
+    url: 'https://api.esv.org/v3/passage/text/',
+    method: 'GET',
+    dataType: 'json',
+    headers: {
+      'Authorization': 'Token ' + apiKey
+    },
+    data: {
+      'q': passage,
+      'include-passage-references': false,
+      'include-verse-numbers': true,
+      'include-footnotes': false,
+      'include-headings': false,
+      'include-selahs': false,
+      'indent-paragraphs': 0,
+      'indent-poetry': false,
+      'line-length': 0
+    },
+    success: function(data) {
+      // Parse ESV API response into array of {verse, text}
+      var verses = [];
+      if(data && data.passages && data.passages.length) {
+        var text = data.passages[0];
+        // Remove (ESV) at end if present
+        text = text.replace(/\(ESV\)\s*$/, '').trim();
+        // Split by [n] markers, which are the verse numbers
+        var verseParts = text.split(/\s*\[(\d+)\]\s*/).filter(function(x){return x!==''});
+        // verseParts will be like: [verseNum1, verseText1, verseNum2, verseText2, ...]
+        for (var i = 0; i < verseParts.length-1; i += 2) {
+          var verseNum = verseParts[i];
+          var verseText = verseParts[i+1].replace(/\s+/g, ' ').replace(/^\]|\[$/g, '').trim();
+          verses.push({verse: verseNum, text: verseText});
+        }
+      }
+      callback(verses);
+    },
+    error: function() {
+      callback([]);
+    }
+  });
 }
 
 
@@ -1133,6 +1238,80 @@ function get_verse(passage, callback ){
   dropZone.addEventListener('drop', handleFileDrop, false);
 </script>
 
+
+<!-- Bible Modal -->
+<div id="bibleModal" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.85); z-index:2000; align-items:center; justify-content:center;">
+  <div style="background:#23272e; color:#eee; padding:20px; border-radius:8px; max-width:600px; margin:40px auto; position:relative; font-size:10pt; box-shadow:0 2px 16px #000;">
+    <button id="bibleModalClose" style="position:absolute; right:10px; top:10px; font-size:10pt; background:#333; color:#eee; border:none; border-radius:3px; cursor:pointer;">X</button>
+    <h3 id="bibleModalTitle" style="margin-top:0; font-size:11pt; word-break:break-all; color:#fff;">Bible Scripture Copy-Paste</h3>
+    <div style="margin-bottom:8px;">
+      <textarea id="bibleResult" rows="10" style="width:100%; font-family:monospace; font-size:10pt; background:#181a1b; color:#eee; border:1px solid #444; border-radius:4px; padding:8px;"></textarea>
+    </div>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <p style="font-size:9pt; color:#aaa; margin:0;">Copy the above text and paste it into <a id="openSonglistTxt" href="#" style="color:#7af; text-decoration:underline; cursor:pointer;">songlist.txt</a></p>
+      <button id="bibleCopyBtn" title="Copy to clipboard" style="background:#333; border:none; border-radius:4px; padding:2px 4px; cursor:pointer; display:flex; align-items:center; justify-content:center; height:16px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#eee" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      </button>
+      <span id="bibleCopyMsg" style="display:none; color:#8f8; font-size:9pt; margin-left:4px;">Copied!</span>
+    </div>
+  </div>
+</div>
+
+<script>
+$(function() {
+  // Open songlist.txt with default program if possible
+  $('#openSonglistTxt').click(function(e){
+    e.preventDefault();
+    // Try to open the file in a new tab (works in some local setups)
+    try {
+      window.open('songlist.txt', '_blank');
+    } catch(err) {
+      alert('Could not open songlist.txt automatically. Please open it manually from your file manager.');
+    }
+    // Fallback message for most browsers
+    setTimeout(function(){
+      alert('If songlist.txt did not open, please open it manually from your file manager.');
+    }, 500);
+  });
+  // Copy to clipboard logic
+  $('#bibleCopyBtn').click(function() {
+    var $ta = $('#bibleResult');
+    $ta.select();
+    document.execCommand('copy');
+    $('#bibleCopyMsg').fadeIn(120);
+    setTimeout(function(){ $('#bibleCopyMsg').fadeOut(350); }, 1200);
+  });
+  $('#bt_bible').click(function() {
+    let last = localStorage.getItem('bible_last_search') || '';
+    let promptMsg = 'Enter scripture reference (e.g., John 3:16-18):';
+    let passage = prompt(promptMsg, last);
+    if (!passage) return;
+    get_verse_esv(passage, function(verses) {
+      if (!verses || !verses.length) {
+        alert('No verses found.');
+        return;
+      }
+      let toInsert = `>-` + passage + "\n";
+      verses.forEach(function(v) {
+        toInsert += `><small>${v.verse}</small> ${v.text.trim()}\n`;
+      });
+      $('#bibleResult').val(toInsert);
+      $('#bibleModalTitle').text(passage + ' (ESV)');
+      $('#bibleModal').fadeIn();
+      // Store the successful search term
+      localStorage.setItem('bible_last_search', passage);
+    });
+  });
+
+  $('#bibleModalClose').click(function() {
+    $('#bibleModal').fadeOut();
+  });
+  // Hide modal on outside click
+  $('#bibleModal').on('click', function(e){
+    if(e.target === this) $(this).fadeOut();
+  });
+});
+</script>
 
 </body>
 </html>
